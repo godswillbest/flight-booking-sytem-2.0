@@ -8,53 +8,70 @@ import admin
 st.set_page_config(
     page_title="Flight Booking System",
     page_icon="✈️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# Initialize database
+db.setup_database()
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-# Run database setup (only once)
-db.setup_database()
+    st.session_state['logged_in'] = False
+if 'user_page' not in st.session_state:
+    st.session_state['user_page'] = 'search'
 
 # Sidebar
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2933/2933244.png", width=80)
+    st.image("https://cdn-icons-png.flaticon.com/512/2933/2933244.png", width=60)
     st.title("✈️ Flight Booking")
+    st.markdown("---")
     
-    if st.session_state.logged_in:
-        st.write(f"Welcome, **{st.session_state.full_name}**")
-        st.write(f"Role: {st.session_state.role}")
+    if st.session_state['logged_in']:
+        st.write(f"👤 **{st.session_state.get('full_name', 'User')}**")
+        st.write(f"📧 {st.session_state.get('user_email', '')}")
+        st.write(f"👑 Role: **{st.session_state.get('role', 'user').upper()}**")
+        st.markdown("---")
         
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True, key="sidebar_logout"):
             auth.logout()
     else:
-        st.write("Please login or register")
+        st.info("Please login or register to continue")
 
 # Main content
-if not st.session_state.logged_in:
+if not st.session_state['logged_in']:
     tab1, tab2 = st.tabs(["🔐 Login", "📝 Register"])
     with tab1:
-        auth.login()
+        auth.show_login()
     with tab2:
-        auth.register()
+        auth.show_register()
 else:
-    st.title("✈️ Flight Booking System")
-    
-    if st.session_state.role == 'admin':
-        admin.admin_dashboard()
+    if st.session_state['role'] == 'admin':
+        admin.show_admin_dashboard()
     else:
-        menu = st.radio("Menu", ["🔍 Search Flights", "📋 My Bookings"], horizontal=True)
-        
-        if menu == "🔍 Search Flights":
-            if 'selected_flight' in st.session_state:
-                user.booking_form()
-            else:
-                user.search_flights()
+        if 'selected_flight_id' in st.session_state:
+            user.booking_form()
         else:
-            user.my_bookings()
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔍 Search Flights", use_container_width=True, key="nav_search"):
+                    st.session_state['user_page'] = 'search'
+                    st.rerun()
+            with col2:
+                if st.button("📋 My Bookings", use_container_width=True, key="nav_bookings"):
+                    st.session_state['user_page'] = 'bookings'
+                    st.rerun()
+            
+            st.markdown("---")
+            
+            if st.session_state['user_page'] == 'search':
+                user.search_flights()
+            else:
+                user.my_bookings()
 
 # Footer
 st.markdown("---")
-st.markdown("© 2025 Flight Booking System | CSC 206 Project")
+st.markdown(
+    "<p style='text-align: center; color: gray;'>© 2026 Flight Booking System | CSC 206 Web Design and Development</p>",
+    unsafe_allow_html=True
+)
