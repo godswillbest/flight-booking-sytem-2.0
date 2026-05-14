@@ -1,0 +1,610 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap");
+
+/* ── CSS Variables ── */
+:root {
+  --ink: #ffffff; /* White background */
+  --panel: #f8f9fa; /* Light Gray Panel */
+  --card: #ffffff; /* White Card */
+  --card2: #e9ecef; /* Light Inputs */
+  --line: rgba(0, 0, 0, 0.1);
+  --line2: rgba(0, 0, 0, 0.15);
+
+  /* Primary Brand Colors */
+  --accent: #2563eb; /* Professional Royal Blue */
+  --accent2: #1d4ed8; /* Darker Blue for hover states */
+  --accentdim: rgba(37, 99, 235, 0.15);
+  --accentborder: rgba(37, 99, 235, 0.3);
+
+  /* Status Colors */
+  --warm: #eab308; /* Readable Amber/Yellow */
+  --warmdim: rgba(234, 179, 8, 0.1);
+  --sky: #38bdf8; /* Light Sky Blue */
+  --skydim: rgba(56, 189, 248, 0.1);
+
+  /* Text Colors */
+  --text: #000000; /* Black Text */
+  --muted: #666666; /* Gray Text */
+  --faint: #999999; /* Light Gray */
+}
+
+/* ── Global reset ── */
+html,
+body,
+[class*="css"] {
+  font-family: "Outfit", sans-serif !important;
+  background-color: var(--ink) !important;
+  color: var(--text) !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--panel);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════ */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pulseDot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.5;
+  }
+}
+@keyframes scanLine {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(600px);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 180, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(0, 212, 180, 0.18);
+  }
+}
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes borderGlow {
+  0%,
+  100% {
+    border-color: var(--accentborder);
+  }
+  50% {
+    border-color: var(--accent);
+  }
+}
+
+/* ══════════════════════════════════
+   APP HEADER / TOP BAR
+══════════════════════════════════ */
+.stAppHeader {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+/* Animated shimmer line across top */
+.stAppHeader::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* ══════════════════════════════════
+   SIDEBAR
+══════════════════════════════════ */
+[data-testid="stSidebar"] {
+  background-color: var(--panel) !important;
+  border-right: 1px solid var(--line) !important;
+}
+[data-testid="stSidebar"]::before {
+  content: "";
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Brand logo inside sidebar */
+.brand-logo {
+  font-family: "Outfit", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  padding: 4px 0 2px;
+  animation: floatCard 4s ease-in-out infinite;
+}
+.brand-tag {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* User card in sidebar */
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  animation: fadeSlideUp 0.5s ease both;
+}
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--accentdim);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.user-role {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════
+   BUTTONS
+══════════════════════════════════ */
+.stButton > button {
+  background-color: var(--accent) !important;
+  color: #ffffff !important; /* Changed to pure white for high contrast */
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  font-family: "Outfit", sans-serif !important;
+  padding: 10px 22px !important;
+  transition: all 0.25s ease !important;
+}
+
+.stButton > button:hover {
+  background-color: var(--accent2) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25) !important; /* Softer shadow */
+}
+
+.stButton > button:active {
+  transform: translateY(0px) !important;
+}
+
+/* ══════════════════════════════════
+   TEXT INPUTS & SELECTS
+══════════════════════════════════ */
+.stTextInput input,
+.stTextInput textarea,
+.stDateInput input,
+.stNumberInput input,
+.stSelectbox select,
+.stTextArea textarea {
+  background-color: var(--card2) !important;
+  border: 1px solid var(--line2) !important;
+  border-radius: 10px !important;
+  color: var(--text) !important;
+  font-family: "Outfit", sans-serif !important;
+  font-size: 13.5px !important;
+  transition: border-color 0.25s ease !important;
+}
+.stTextInput input:focus,
+.stTextArea textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(0, 212, 180, 0.12) !important;
+}
+.stTextInput label,
+.stSelectbox label,
+.stDateInput label,
+.stNumberInput label,
+.stTextArea label {
+  color: var(--muted) !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-weight: 600 !important;
+}
+
+/* ══════════════════════════════════
+   FORMS
+══════════════════════════════════ */
+[data-testid="stForm"] {
+  background-color: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 18px !important;
+  padding: 28px !important;
+  animation: fadeSlideUp 0.5s ease both;
+  position: relative;
+  overflow: hidden;
+}
+[data-testid="stForm"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* ══════════════════════════════════
+   METRIC CARDS
+══════════════════════════════════ */
+[data-testid="stMetric"] {
+  background-color: var(--card) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
+  padding: 18px 20px !important;
+  transition: all 0.25s ease !important;
+  animation: fadeSlideUp 0.5s ease both;
+}
+[data-testid="stMetric"]:hover {
+  border-color: var(--line2) !important;
+  transform: translateY(-3px);
+}
+[data-testid="stMetricLabel"] {
+  font-size: 10px !important;
+  color: var(--faint) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.2px !important;
+}
+[data-testid="stMetricValue"] {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+  font-family: "Outfit", sans-serif !important;
+  letter-spacing: -1px !important;
+}
+[data-testid="stMetricDelta"] {
+  color: #4ade80 !important;
+  font-size: 11px !important;
+}
+
+/* ══════════════════════════════════
+   TABS
+══════════════════════════════════ */
+.stTabs [data-baseweb="tab-list"] {
+  background-color: var(--card) !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  border: 1px solid var(--line) !important;
+  gap: 2px !important;
+}
+.stTabs [data-baseweb="tab"] {
+  color: var(--muted) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 8px 20px !important;
+  font-family: "Outfit", sans-serif !important;
+  transition: all 0.2s ease !important;
+}
+.stTabs [aria-selected="true"] {
+  background-color: var(--card2) !important;
+  color: var(--text) !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+  background-color: transparent !important;
+}
+.stTabs [data-baseweb="tab-border"] {
+  display: none !important;
+}
+
+/* ══════════════════════════════════
+   DATAFRAMES / TABLES
+══════════════════════════════════ */
+[data-testid="stDataFrame"] {
+  border: 1px solid var(--line) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+[data-testid="stDataFrame"] th {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  color: var(--faint) !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1.2px !important;
+  font-family: "Outfit", sans-serif !important;
+}
+[data-testid="stDataFrame"] td {
+  color: var(--text) !important;
+  font-size: 13px !important;
+  border-color: var(--line) !important;
+}
+
+/* ══════════════════════════════════
+   DIVIDER
+══════════════════════════════════ */
+hr {
+  border-color: var(--line) !important;
+  margin: 16px 0 !important;
+}
+
+/* ══════════════════════════════════
+   SUCCESS / ERROR / INFO ALERTS
+══════════════════════════════════ */
+[data-testid="stAlert"] {
+  border-radius: 12px !important;
+  font-family: "Outfit", sans-serif !important;
+}
+.stAlert[data-baseweb="notification"] {
+  background-color: var(--card) !important;
+}
+
+/* ══════════════════════════════════
+   PAGE HEADINGS (st.title / st.header)
+══════════════════════════════════ */
+h1,
+h2,
+h3 {
+  font-family: "Outfit", sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px !important;
+  color: var(--text) !important;
+}
+h1 {
+  font-size: 28px !important;
+}
+h2 {
+  font-size: 20px !important;
+}
+h3 {
+  font-size: 16px !important;
+  color: var(--muted) !important;
+  font-weight: 600 !important;
+}
+
+/* ══════════════════════════════════
+   STATUS PILLS  (use st.markdown)
+   Usage: st.markdown('<span class="pill on-time">On time</span>', unsafe_allow_html=True)
+══════════════════════════════════ */
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: "Outfit", sans-serif;
+}
+.pill.on-time {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+.pill.boarding {
+  background: var(--accentdim);
+  color: var(--accent);
+  border: 1px solid var(--accentborder);
+}
+.pill.delayed {
+  background: rgba(252, 96, 96, 0.1);
+  color: #fc6060;
+  border: 1px solid rgba(252, 96, 96, 0.25);
+}
+.pill.gold {
+  background: rgba(255, 200, 80, 0.1);
+  color: #ffd050;
+  border: 1px solid rgba(255, 200, 80, 0.25);
+}
+
+/* ══════════════════════════════════
+   TICKET CARD  (use st.markdown)
+   Usage: st.markdown('<div class="ticket-card">...</div>', unsafe_allow_html=True)
+══════════════════════════════════ */
+.ticket-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 28px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: floatCard 6s ease-in-out infinite;
+}
+.ticket-card:hover {
+  border-color: var(--accentborder);
+  animation: none;
+  transform: translateY(-3px);
+}
+.ticket-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+.ticket-route {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+}
+.ticket-route em {
+  font-style: normal;
+  color: var(--accent);
+}
+.ticket-ref {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 4px;
+}
+.ticket-divider {
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  margin: 18px 0;
+}
+.ticket-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.tmf-label {
+  font-size: 9px;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.tmf-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tmf-value.accent {
+  color: var(--accent);
+}
+.ticket-barcode {
+  height: 42px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0px,
+    rgba(255, 255, 255, 0.1) 1.5px,
+    transparent 1.5px,
+    transparent 5px
+  );
+  border-radius: 5px;
+  margin-top: 16px;
+}
+
+/* ══════════════════════════════════
+   SEARCH HERO CARD  (use st.container)
+   Usage: st.markdown('<div class="hero-card">...</div>', unsafe_allow_html=True)
+══════════════════════════════════ */
+.hero-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideUp 0.5s ease both;
+}
+.hero-card::after {
+  content: "✈";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 160px;
+  opacity: 0.025;
+  line-height: 1;
+  pointer-events: none;
+}
+/* Scan line animation on hero */
+.hero-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 212, 180, 0.3),
+    transparent
+  );
+  animation: scanLine 4s linear infinite;
+  pointer-events: none;
+}
+.hero-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.hero-title em {
+  font-style: normal;
+  color: var(--accent);
+}
+.hero-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+/* ══════════════════════════════════
+   COLUMNS / GENERAL SPACING
+══════════════════════════════════ */
+[data-testid="stVerticalBlock"] > div {
+  animation: fadeSlideUp 0.45s ease both;
+}
+/* stagger children */
+[data-testid="stVerticalBlock"] > div:nth-child(2) {
+  animation-delay: 0.06s;
+}
+[data-testid="stVerticalBlock"] > div:nth-child(3) {
+  animation-delay: 0.12s;
+}
+[data-testid="stVerticalBlock"] > div:nth-child(4) {
+  animation-delay: 0.18s;
+}
+[data-testid="stVerticalBlock"] > div:nth-child(5) {
+  animation-delay: 0.24s;
+}

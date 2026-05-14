@@ -2,161 +2,124 @@ import streamlit as st
 import pandas as pd
 import database as db
 
+DEFAULT_PROMOTIONS = [
+    {'code': 'SKYFLOW10', 'discount': 10, 'description': '10% off selected routes', 'active': True},
+    {'code': 'GOLD5', 'discount': 5, 'description': '5% off for frequent flyers', 'active': True}
+]
+
+
+def get_promotions():
+    if 'promotions' not in st.session_state:
+        st.session_state['promotions'] = DEFAULT_PROMOTIONS.copy()
+    return st.session_state['promotions']
+
+
 def show_admin_dashboard():
-    st.subheader("🛠️ Administrator Control Panel")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Manage Flights", "➕ Add New User", "👥 All Users", "📋 All Bookings"])
-    
-    # TAB 1: Manage Flights
+    st.title('Administrator Control Panel')
+    st.markdown('Manage flights, bookings, users, and promotional campaigns from one dashboard.')
+
+    tab1, tab2, tab3, tab4 = st.tabs(['📊 Manage Flights', '📋 Manage Bookings', '👥 Manage Users', '🎟 Manage Promotions'])
+
     with tab1:
-        st.markdown("### Add New Flight")
-        
-        with st.form("add_flight_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                flight_number = st.text_input("Flight Number", placeholder="e.g., NG1099", key="admin_flight_no")
-                airline = st.text_input("Airline", placeholder="e.g., Nigeria Air", key="admin_airline")
-                origin = st.text_input("Origin", placeholder="e.g., Lagos (LOS)", key="admin_origin")
-                destination = st.text_input("Destination", placeholder="e.g., Abuja (ABV)", key="admin_dest")
-            with col2:
-                departure_date = st.date_input("Departure Date", key="admin_date")
-                departure_time = st.text_input("Departure Time", placeholder="08:00", key="admin_dep_time")
-                arrival_time = st.text_input("Arrival Time", placeholder="09:30", key="admin_arr_time")
-                price = st.number_input("Price (₦)", min_value=0, step=1000, key="admin_price")
-                total_seats = st.number_input("Total Seats", min_value=1, step=1, key="admin_seats")
-            
-            submitted = st.form_submit_button("✈️ Add Flight", use_container_width=True)
-            
-            if submitted:
-                if all([flight_number, airline, origin, destination, departure_time, arrival_time]):
-                    conn = db.get_connection()
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute("""
-                            INSERT INTO flights (flight_number, airline, origin, destination, 
-                                               departure_date, departure_time, arrival_time, 
-                                               price, total_seats, available_seats)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (flight_number, airline, origin, destination, str(departure_date),
-                              departure_time, arrival_time, price, total_seats, total_seats))
-                        conn.commit()
-                        st.success(f"✅ Flight {flight_number} added successfully!")
-                    except Exception as e:
-                        st.error(f"Flight number already exists: {e}")
-                    finally:
-                        conn.close()
-                else:
-                    st.error("Please fill all fields")
-        
-        st.markdown("---")
-        st.markdown("### Existing Flights")
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM flights ORDER BY departure_date")
-        flights = cursor.fetchall()
-        conn.close()
-        
+        st.subheader('Flight Management')
+        flights = db.get_all_flights()
         if flights:
-            for flight in flights:
-                col1, col2, col3 = st.columns([4, 1, 1])
+            df = pd.DataFrame(flights, columns=['ID', 'Flight No', 'Airline', 'Origin', 'Destination', 'Date', 'Departure', 'Arrival', 'Price', 'Total Seats', 'Available Seats'])
+            st.dataframe(df)
+        else:
+            st.info('No flights available yet.')
+
+        with st.expander('Add New Flight'):
+            with st.form('add_flight_form'):
+                col1, col2 = st.columns(2)
                 with col1:
-                    st.write(f"**{flight[1]}** - {flight[2]} | {flight[3]} → {flight[4]} | {flight[5]} | ₦{flight[8]:,.0f} | Seats: {flight[10]}/{flight[9]}")
+                    flight_number = st.text_input('Flight Number', placeholder='NG1099')
+                    airline = st.text_input('Airline', placeholder='SkyFlow Airways')
+                    origin = st.text_input('Origin', placeholder='Lagos (LOS)')
                 with col2:
-                    if st.button("✏️ Edit", key=f"edit_{flight[0]}"):
-                        st.info("Edit feature coming soon")
-                with col3:
-                    if st.button("🗑️ Delete", key=f"delete_{flight[0]}"):
-                        conn2 = db.get_connection()
-                        cursor2 = conn2.cursor()
-                        cursor2.execute("DELETE FROM flights WHERE id = ?", (flight[0],))
-                        conn2.commit()
-                        conn2.close()
-                        st.rerun()
-        else:
-            st.info("No flights found")
-    
-    # TAB 2: Add User
+                    destination = st.text_input('Destination', placeholder='Abuja (ABV)')
+                    departure_date = st.date_input('Departure Date')
+                    departure_time = st.text_input('Departure Time', placeholder='08:00')
+                    arrival_time = st.text_input('Arrival Time', placeholder='10:00')
+                price = st.number_input('Price', min_value=0, value=100000)
+                total_seats = st.number_input('Total Seats', min_value=1, value=60)
+                submit_flight = st.form_submit_button('Add Flight')
+                if submit_flight:
+                    if not flight_number or not airline or not origin or not destination:
+                        st.error('Please complete all flight details.')
+                    else:
+                        try:
+                            db.add_flight(
+                                flight_number.strip().upper(),
+                                airline.strip(),
+                                origin.strip(),
+                                destination.strip(),
+                                departure_date.strftime('%Y-%m-%d'),
+                                departure_time.strip(),
+                                arrival_time.strip(),
+                                float(price),
+                                int(total_seats)
+                            )
+                            st.success(f'Flight {flight_number} added successfully.')
+                            st.experimental_rerun()
+                        except Exception as err:
+                            st.error(f'Unable to add flight: {err}')
+
     with tab2:
-        with st.form("admin_add_user_form"):
-            username = st.text_input("Username", key="admin_username")
-            full_name = st.text_input("Full Name", key="admin_fullname")
-            email = st.text_input("Email", key="admin_email")
-            password = st.text_input("Password", type="password", key="admin_password")
-            role = st.selectbox("Role", ["user", "admin"], key="admin_role")
-            
-            if st.form_submit_button("➕ Add User", use_container_width=True):
-                if username and password:
-                    conn = db.get_connection()
-                    cursor = conn.cursor()
-                    hashed = db.hash_password(password)
-                    try:
-                        cursor.execute("INSERT INTO users (username, password, full_name, email, role) VALUES (?, ?, ?, ?, ?)",
-                                      (username, hashed, full_name, email, role))
-                        conn.commit()
-                        st.success(f"✅ User {username} added successfully!")
-                    except:
-                        st.error("Username already exists")
-                    finally:
-                        conn.close()
-                else:
-                    st.error("Username and password required")
-    
-    # TAB 3: All Users
-    with tab3:
-        st.markdown("### Registered Users")
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, username, full_name, email, role FROM users ORDER BY id")
-        users = cursor.fetchall()
-        conn.close()
-        
-        if users:
-            user_data = []
-            for user in users:
-                user_data.append({
-                    "ID": user[0],
-                    "Username": user[1],
-                    "Full Name": user[2],
-                    "Email": user[3],
-                    "Role": "👑 Admin" if user[4] == "admin" else "👤 User"
-                })
-            df = pd.DataFrame(user_data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
-            st.info(f"📊 Total Users: {len(users)}")
-        else:
-            st.info("No users found")
-    
-    # TAB 4: All Bookings
-    with tab4:
-        st.markdown("### All Customer Bookings")
-        
+        st.subheader('Bookings Overview')
         bookings = db.get_all_bookings()
-        
         if bookings:
-            st.success(f"📊 Total Bookings in System: {len(bookings)}")
-            
-            # Summary statistics
-            confirmed = sum(1 for b in bookings if b[4] == 'confirmed')
-            cancelled = len(bookings) - confirmed
-            st.info(f"✅ Confirmed: {confirmed} | ❌ Cancelled: {cancelled}")
-            
-            st.markdown("---")
-            
-            for booking in bookings:
-                with st.expander(f"📌 {booking[0]} - {booking[5]} ({booking[7]} → {booking[8]})", expanded=False):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown(f"**Passenger:** {booking[1]} (Age: {booking[2]})")
-                        st.markdown(f"**Flight:** {booking[5]} - {booking[6]}")
-                        st.markdown(f"**Route:** {booking[7]} → {booking[8]}")
-                        st.markdown(f"**Departure:** {booking[9]} at {booking[10]}")
-                    with col2:
-                        st.markdown(f"**Price:** ₦{booking[11]:,.0f}")
-                        st.markdown(f"**Status:** {'✅ Confirmed' if booking[4] == 'confirmed' else '❌ Cancelled'}")
-                        st.markdown(f"**Booked By:** {booking[12]} ({booking[14]})")
-                        st.markdown(f"**Booking Date:** {booking[3]}")
+            df = pd.DataFrame(bookings, columns=[
+                'Booking Ref', 'Passenger', 'Age', 'Date', 'Status', 'Flight No', 'Airline',
+                'Origin', 'Destination', 'Depart Date', 'Depart Time', 'Fare', 'Trip Type',
+                'Return Date', 'Adults', 'Children', 'Infants', 'Total Price', 'Payment Method',
+                'Return Flight ID', 'Return Flight No', 'Return Origin', 'Return Destination',
+                'Return Depart Date', 'Return Depart Time', 'Return Fare', 'Username', 'Full Name', 'Email'
+            ])
+            st.dataframe(df)
         else:
-            st.error("⚠️ NO BOOKINGS IN DATABASE")
-            st.info("Users need to book flights before bookings appear here")
+            st.info('No bookings have been made yet.')
+
+    with tab3:
+        st.subheader('User Accounts')
+        users = db.get_all_users()
+        if users:
+            df = pd.DataFrame(users, columns=['ID', 'Username', 'Full Name', 'Email', 'Role'])
+            st.dataframe(df)
+        else:
+            st.info('No registered users yet.')
+
+        with st.expander('Add New Admin or User'):
+            st.write('User creation is currently handled through registration. Use the database directly for bulk provisioning.')
+
+    with tab4:
+        st.subheader('Promotions Manager')
+        promotions = get_promotions()
+        for promo in promotions:
+            cols = st.columns([3, 1, 1, 1])
+            cols[0].markdown(f"**{promo['code']}** — {promo['description']}")
+            cols[1].markdown(f"**{promo['discount']}% Off**")
+            cols[2].markdown('Active' if promo['active'] else 'Inactive')
+            if cols[3].button(f"Toggle {promo['code']}", key=f"toggle_{promo['code']}"):
+                promo['active'] = not promo['active']
+                st.experimental_rerun()
+
+        st.markdown('---')
+        with st.form('new_promo_form'):
+            promo_code = st.text_input('Promo Code')
+            promo_discount = st.number_input('Discount (%)', min_value=1, max_value=100, value=10)
+            promo_desc = st.text_input('Description', placeholder='Example: 10% off premium routes')
+            promo_active = st.checkbox('Active', value=True)
+            add_promo = st.form_submit_button('Add Promotion')
+            if add_promo:
+                if not promo_code or not promo_desc:
+                    st.error('Please provide a valid promo code and description.')
+                else:
+                    promotions.append({
+                        'code': promo_code.strip().upper(),
+                        'discount': int(promo_discount),
+                        'description': promo_desc.strip(),
+                        'active': promo_active
+                    })
+                    st.success(f'Promotion {promo_code.strip().upper()} added.')
+                    st.experimental_rerun()

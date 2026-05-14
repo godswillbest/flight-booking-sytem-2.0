@@ -4,58 +4,111 @@ import auth
 import user
 import admin
 
-# 1. Page Configuration
-st.set_page_config(page_title="Flight Booking System", page_icon="✈️", layout="wide")
+st.set_page_config(
+    page_title="SkyFlow Airlines",
+    page_icon="✈️",
+    layout="wide"
+)
 
+
+def load_custom_css():
+    with open("style.css", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_custom_css()
 db.setup_database()
 
-# 2. Session State Initialization
 if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
-if 'user_page' not in st.session_state:
-    st.session_state['user_page'] = 'search'
+if 'page' not in st.session_state:
+    st.session_state['page'] = 'Home'
+if 'booking_stage' not in st.session_state:
+    st.session_state['booking_stage'] = None
+if 'language' not in st.session_state:
+    st.session_state['language'] = 'English'
+if 'currency' not in st.session_state:
+    st.session_state['currency'] = 'NGN'
+if 'notifications' not in st.session_state:
+    st.session_state['notifications'] = [
+        'Welcome aboard! Book your next trip with ease.',
+        'Try the new track flight tool for live status updates.',
+        'Use SKYFLOW10 for a 10% discount on selected routes.'
+    ]
 
-# 3. Sidebar
 with st.sidebar:
-    st.title("✈️ Menu")
+    st.markdown('<div class="brand-logo">✈ SkyFlow</div>', unsafe_allow_html=True)
+    st.markdown('<div class="brand-tag">AIRLINES</div>', unsafe_allow_html=True)
+    st.markdown('---')
+
     if st.session_state['logged_in']:
-        st.write(f"👤 **{st.session_state.get('full_name')}**")
-        if st.button("🚪 Logout", key="logout_btn"):
+        st.markdown(
+            f'<div class="user-card">'
+            f'<div class="user-avatar">{st.session_state.get("full_name", "?")[0]}</div>'
+            f'<div><div class="user-name">{st.session_state.get("full_name")}</div>'
+            f'<div class="user-role">{st.session_state.get("role", "User").title()} Member</div></div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown('---')
+
+        if st.session_state.get('role') == 'admin':
+            menu_items = []
+        else:
+            menu_items = [
+                'Home', 'Search Flights', 'Flight Schedule', 'My Bookings',
+                'Payment History', 'Flight Status', 'Customer Support', 'Notifications',
+                'Profile'
+            ]
+
+        if menu_items:
+            choice = st.radio('Navigation', menu_items, index=menu_items.index(st.session_state['page']) if st.session_state['page'] in menu_items else 0)
+            st.session_state['page'] = choice
+        else:
+            st.markdown("**Admin Dashboard**")
+        st.markdown('---')
+        st.selectbox('Language', ['English', 'French'], key='language')
+        st.selectbox('Currency', ['NGN', 'USD', 'EUR'], key='currency')
+        st.markdown('---')
+        if st.button('🚪 Sign out'):
             auth.logout()
-            st.rerun()
+    else:
+        st.markdown('Welcome to SkyFlow Airlines. Please log in to search flights, manage bookings, and track travel.')
 
-# 4. Main Router Logic
 if not st.session_state['logged_in']:
-    tab1, tab2 = st.tabs(["🔐 Login", "📝 Register"])
-    with tab1: auth.show_login()
-    with tab2: auth.show_register()
-
+    tab1, tab2 = st.tabs(['🔐 Login', '📝 Register'])
+    with tab1:
+        auth.show_login()
+    with tab2:
+        auth.show_register()
 else:
-    # --- ADMIN CHECK FIRST ---
     if st.session_state.get('role') == 'admin':
         admin.show_admin_dashboard()
-    
-    # --- USER LOGIC SECOND ---
     else:
-        # If a flight is being booked, show the form and NOTHING else
-        if 'selected_flight_id' in st.session_state:
+        if st.session_state['booking_stage'] == 'booking':
             user.booking_form()
-        
-        # Otherwise, show standard navigation and pages
+        elif st.session_state['booking_stage'] == 'confirmation':
+            user.confirmation_page()
         else:
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("🔍 Search Flights", use_container_width=True, key="nav_s"):
-                    st.session_state['user_page'] = 'search'
-                    st.rerun()
-            with col2:
-                if st.button("📋 My Bookings", use_container_width=True, key="nav_b"):
-                    st.session_state['user_page'] = 'bookings'
-                    st.rerun()
-            
-            st.markdown("---")
-            
-            if st.session_state['user_page'] == 'search':
+            page = st.session_state['page']
+            if page == 'Home':
+                user.dashboard_home()
+            elif page == 'Search Flights':
                 user.search_flights()
-            else:
+            elif page == 'Flight Schedule':
+                user.schedule_page()
+            elif page == 'Track Flight':
+                user.track_flight()
+            elif page == 'My Bookings':
                 user.my_bookings()
+            elif page == 'Payment History':
+                user.payment_history()
+            elif page == 'Flight Status':
+                user.track_flight()
+            elif page == 'Customer Support':
+                user.support_page()
+            elif page == 'Notifications':
+                user.notifications_page()
+            elif page == 'Profile':
+                user.user_profile()
+            else:
+                user.dashboard_home()

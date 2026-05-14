@@ -67,7 +67,8 @@ def show_register():
                 conn.close()
 
 def logout():
-    for key in ['logged_in', 'user_id', 'username', 'full_name', 'user_email', 'role', 'selected_flight_id', 'user_page']:
+    for key in ['logged_in', 'user_id', 'username', 'full_name', 'user_email', 'role', 'selected_flight_id', 'selected_return_flight_id', 'booking_details', 'selected_outbound_id', 'selected_return_id', 'booking_stage', 'confirmation_data', 'track_ref', 'page']:
         if key in st.session_state:
             del st.session_state[key]
+    st.session_state['page'] = 'Home'
     st.rerun()
